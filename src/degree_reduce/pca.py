@@ -23,5 +23,7 @@ class PCA():
         self.projectMatrix = vt
 
         return ut@numpy.diag(st)
+    
+    
     def project(self, data):
         return data @ self.projectMatrix
