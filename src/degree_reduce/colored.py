@@ -4,14 +4,19 @@ from scipy import sparse, linalg, stats
 from scipy.sparse.linalg import svds, aslinearoperator, LinearOperator
 from pca import PCA
 from matplotlib import pyplot as plt
+from pathlib import Path
 
-
-path = '/data/Documents/study/2023-Fall/CS7304H-StatisticalLearning/statistical-learning-project/dataset/train_feature.pkl'
-label_path = '/data/Documents/study/2023-Fall/CS7304H-StatisticalLearning/statistical-learning-project/dataset/train_labels.npy'
-with open(path, "rb") as file:
+relative_path = "../../dataset/train_feature.pkl"
+dir = Path(__file__).parent
+feature_path = dir.joinpath(relative_path)
+with open(feature_path, "rb") as file:
     TrainFeature = pickle.load(file)
 
+relative_path = "../../dataset/train_labels.npy"
+dir = Path(__file__).parent
+label_path = dir.joinpath(relative_path)
 label = np.load(label_path)
+
 color = [ plt.get_cmap("seismic", 20)(i) for i in label[:500] ]
 pca = PCA()
 
