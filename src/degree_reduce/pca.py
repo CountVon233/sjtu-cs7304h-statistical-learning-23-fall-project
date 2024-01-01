@@ -2,6 +2,9 @@
 import numpy
 from scipy import sparse
 from scipy.sparse.linalg import svds
+from scipy.sparse.linalg import norm
+
+
 
 
 class PCA():
@@ -16,6 +19,9 @@ class PCA():
     #   trunc_degree: desire output feature degree
     def train_and_proj(self, data:sparse.csr_matrix, trunc_degree):
         assert data.shape[1] >= trunc_degree
+        data = data[:,norm(data, axis=0).nonzero()[0]]
+        data = data - numpy.mean(data, axis=0)
+        data = data / numpy.linalg.norm(data, axis=0)
         ut, st, vt = svds(data, trunc_degree)
 
         self.feature_degree = data.shape[1]

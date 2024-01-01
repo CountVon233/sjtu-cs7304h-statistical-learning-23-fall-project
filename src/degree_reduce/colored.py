@@ -21,7 +21,7 @@ ax = fig.add_subplot(111,projection='3d')
 plt.set_cmap(plt.get_cmap('seismic', 20))
 im = ax.scatter( feature[:500, 0], feature[:500, 1], feature[:500, 2], s=20, c=color, marker='.' )
 
-plt.show()
-plt.savefig('./src/degree_reduce/colored.png')
+# plt.show()
+plt.savefig('./src/degree_reduce/colored.png', dpi=300)
 
 
