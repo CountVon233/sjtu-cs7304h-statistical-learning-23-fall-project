@@ -27,3 +27,4 @@ class PCA():
     
     def project(self, data):
         return data @ self.projectMatrix
+    
