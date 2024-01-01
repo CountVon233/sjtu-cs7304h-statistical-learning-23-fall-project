@@ -13,4 +13,4 @@ class solver:
             y = train_label[i:i+1,:]
             out = self.w@x + self.b
             p = np.exp(out)/( np.sum( np.exp(out), axis=0).reshape([1,-1]) )
-            _w = np.ones(self.out_class, self.in_feature)@x * (p + np.eye(self.out_class)[y, :])
+            _w = np.ones(self.out_class, self.in_feature)@x * ( - p + np.eye(self.out_class)[y, :])
