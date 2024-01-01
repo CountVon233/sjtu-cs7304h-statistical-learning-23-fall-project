@@ -16,4 +16,4 @@ def run_py(train_data, train_label):
     # print(train_y)
     # print(test_y)
     DL_net = DL.network(train_data.shape[1], 20, 2)
-    DL_net.train(train_x, train_y, 50, test_x, test_y)
+    DL_net.train(train_x, train_y, 50, test_x, test_y, 100)

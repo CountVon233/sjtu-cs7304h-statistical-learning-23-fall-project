@@ -34,12 +34,7 @@ class network:
         plt.savefig('..\\..\\output\\DNN_fig.png')
 
 
-    def forward(self):
-        pass
-
-
-    def train(self, train_data, train_label, mini_batch, test_data, test_label):
-        epochs = 100
+    def train(self, train_data, train_label, mini_batch, test_data, test_label, epochs):
         for epoch in range(epochs):
             losses = []
             for i in range(0, train_data.shape[0]-mini_batch, mini_batch):
@@ -95,6 +90,7 @@ class network:
             self.ACC .append(acc/test_data.shape[0])
             self.LR  .append(self.lr)
         # self.plot()
+
 
     def test(self, data, label, mini_batch):
         acc = 0
