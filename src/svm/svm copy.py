@@ -6,6 +6,51 @@ import random
 from matplotlib import pyplot as plt
 
 class SVM():
+    class selector:
+        def __init__(self, num_sample, C) -> None:
+            self.scan = 'all'
+            self.num_sample = num_sample
+            self.C = C
+            self.idx = numpy.array(list(range(num_sample)))
+            numpy.random.shuffle(self.idx)
+            self.now_ptr = 0
+            self.epsilon = 0.0001
+        def choose(self, a, lab, fx):
+            ptr_from = self.now_ptr
+            hit = 0
+            while self.now_ptr < self.num_sample:
+                self.now_ptr += 1
+                if self.now_ptr == self.num_sample:
+                    self.now_ptr = 0
+                    if self.scan == 'all':
+                        self.scan = 'nonbound'
+                    else:
+                        self.scan = 'all'
+                    numpy.random.shuffle(self.idx)
+                if self.if_violate(a[self.idx[self.now_ptr]], lab[self.idx[self.now_ptr]], fx[self.idx[self.now_ptr]]):
+                    i = self.idx[self.now_ptr]
+                    # E = fx - lab
+                    # E_lr = numpy.abs(E-E[i])
+                    # j = numpy.argpartition(E_lr[:,0],-5)[-5:]
+                    # j = random.choice(j)
+                    j = random.randint(0,self.num_sample-1)
+                    while j == i:
+                        j = random.randint(0,self.num_sample-1)
+                    return (i,j)
+                if self.now_ptr == ptr_from:
+                    hit += 1
+                if hit >=2:
+                    return None
+        
+        def if_violate(self, a_i, lab_i, fx_i):
+            if a_i > 0 and a_i < C and abs(lab_i * fx_i - 1) >= self.epsilon:
+                return True
+            if self.scan=='all' and a_i == 0 and lab_i * fx_i < 1:
+                return True
+            if self.scan=='all' and a_i == self.C and lab_i * fx_i > 1:
+                return True
+            return False
+
     def __init__(self, kernel = 'linear',C = 1, gamma = 1) -> None:
         self.vec = None
         self.lab = None
@@ -17,12 +62,13 @@ class SVM():
         self.epsilon = 0.001
         self.kernel = kernel
         self.gamma = gamma
+        self.sel = None
     def fit(self, feature, label, max_iter = 10000):
         self.vec = feature
         self.lab = label.reshape((-1,1))
         self.getKM()
         self.a = numpy.zeros_like(self.lab, dtype=numpy.float32) * self.C
-        # self.a = numpy.random.rand(self.lab.shape[0], 1)*self.C
+        self.sel = self.selector(self.lab.shape[0], self.C)
         self.SMO(max_iter=max_iter)
         self.simplify()
         return (self.fx > 0) * 2 -1
@@ -64,10 +110,11 @@ class SVM():
         self.fx = numpy.dot(self.KM , self.lab * self.a) + self.b
         # self.fx = (self.fx > 0)*2 - 1
         for stp in range(max_iter):
-            if stp < 10 * self.lab.shape[0]:
-                ij = self.choice(stp=stp % self.lab.shape[0])
-            else:
-                ij = self.choice()
+            # if stp < 10 * self.lab.shape[0]:
+            #     ij = self.choice(stp=stp % self.lab.shape[0])
+            # else:
+            #     ij = self.choice()
+            ij = self.sel.choose(self.a, self.lab, self.fx)
             if ij is not None:
                 self.step(ij[0],ij[1])
             else:
@@ -115,23 +162,29 @@ class SVM():
     def choice(self,stp = None) -> Tuple[int,int]:
         if stp is not None:
             i = stp
-
-            # E = self.fx - self.lab
-            # E_lr = numpy.abs(E-E[i]).reshape([-1])
-            # j = numpy.argsort(E_lr)[-10:]
-            # j = random.choice(j)
-
-            # E = self.fx - self.lab
-            # if E[i] > 0:
-            #     j = numpy.argmin(E.reshape([-1]))
-            # else:
-            #     j = numpy.argmax(E.reshape([-1]))
-
+            E = self.fx - self.lab
+            E_lr = numpy.abs(E-E[i])
+            # j = numpy.argmax(E_lr)
             j = random.randint(0,self.lab.shape[0]-1)
             while j == i:
                 j = random.randint(0,self.lab.shape[0]-1)
 
             return (i,j)
+        
+        idx = numpy.array(list(range(self.lab.shape[0]))).reshape((-1,1))
+        numpy.random.shuffle(idx)
+        for i in idx:
+            if self.a[i] > 0 and self.a[i] < self.C and abs(self.lab[i] * self.fx[i] - 1) >= self.epsilon:
+                break
+            elif self.a[i] == 0 and self.lab[i] * self.fx[i] < 1:
+                break
+            elif self.a[i] == self.C and self.lab[i] * self.fx[i] > 1:
+                break
+        E = self.fx - self.lab
+        E_lr = numpy.abs(E-E[i])
+        j = numpy.argpartition(E_lr[:,0],-5)[-5:]
+        j = random.choice(j)
+        return (i, j)
 
         idx_p = (self.a > 0) * 1
         idx_c = (self.a == self.C) * 1
