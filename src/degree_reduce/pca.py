@@ -7,7 +7,7 @@ from scipy.sparse.linalg import norm
 
 
 
-class PCA():
+class PCA:
     def __init__(self) -> None:
         self.feature_degree = 0                 # feature degree of input data
         self.trunc_degree = 0                   # feature degree of output data
@@ -29,6 +29,7 @@ class PCA():
         self.projectMatrix = vt
 
         return ut@numpy.diag(st)
+
+
     def project(self, data):
         return data @ self.projectMatrix
-    
