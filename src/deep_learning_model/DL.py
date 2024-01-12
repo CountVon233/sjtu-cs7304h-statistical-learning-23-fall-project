@@ -37,8 +37,8 @@ class network:
     def train(self, train_data, train_label, mini_batch, test_data, test_label, epochs):
         for epoch in range(epochs):
             losses = []
-            for i in range(0, train_data.shape[0]-mini_batch, mini_batch):
-                x_1 = train_data[i:i+mini_batch,:].T
+            for i in range(0, train_data.shape[0], mini_batch):
+                x_1 = train_data[i:min(i+mini_batch, train_data.shape[0]),:].T
                 y_1 = train_label[i:i+mini_batch,:].T
                 x_2 = self.w_hidden@x_1 + self.b_hidden
                 x_3 = np.exp(x_2)/(1 + np.exp(x_2))
@@ -74,8 +74,8 @@ class network:
                 self.b_out    -= self.lr * _b_out.reshape(self.b_out.shape) / mini_batch
             
             acc = 0
-            for i in range(0, test_data.shape[0]-mini_batch, mini_batch):
-                x_1 = test_data[i:i+mini_batch,:].T
+            for i in range(0, test_data.shape[0], mini_batch):
+                x_1 = test_data[i:min(i+mini_batch, test_data.shape[0]),:].T
                 y_1 = test_label[i:i+mini_batch,:].T
                 x_2 = self.w_hidden@x_1 + self.b_hidden
                 x_3 = np.exp(x_2)/(1 + np.exp(x_2))
@@ -92,16 +92,15 @@ class network:
         # self.plot()
 
 
-    def test(self, data, label, mini_batch):
-        acc = 0
-        for i in range(0, data.shape[0]-mini_batch, mini_batch):
-            x_1 = data[i:i+mini_batch,:].T
-            y_1 = label[i:i+mini_batch,:].T
+    def test(self, data, mini_batch):
+        predict_result = []
+        for i in range(0, data.shape[0], mini_batch):
+            x_1 = data[i:min(i+mini_batch, data.shape[0]),:].T
             x_2 = self.w_hidden@x_1 + self.b_hidden
             x_3 = np.exp(x_2)/(1 + np.exp(x_2))
             x_4 = (self.w_out@x_3 + self.b_out)
             x_5 = np.exp(x_4)/( np.sum( np.exp(x_4) ) )
-            x_5 = (x_5 == np.max(x_5, axis=1)) 
-            acc += np.sum(np.absolute(x_5 - y_1))
+            predict_result.append(np.argmax(x_5, axis=1).reshape([-1,1]))
+        return np.concatenate(predict_result, axis = 0)
 
 
