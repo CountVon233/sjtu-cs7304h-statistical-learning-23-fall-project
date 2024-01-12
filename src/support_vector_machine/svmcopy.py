@@ -43,7 +43,7 @@ class SVM():
                     return None
         
         def if_violate(self, a_i, lab_i, fx_i):
-            if a_i > 0 and a_i < C and abs(lab_i * fx_i - 1) >= self.epsilon:
+            if a_i > 0 and a_i < self.C and abs(lab_i * fx_i - 1) >= self.epsilon:
                 return True
             if self.scan=='all' and a_i == 0 and lab_i * fx_i < 1:
                 return True
@@ -224,7 +224,7 @@ class SVM():
         ker = self.getKM(feature=feature)
         fx = numpy.dot(ker.T, self.lab * self.a) + self.b
         if value:
-            return (fx > 0) * 2 -1, abs(fx)
+            return (fx > 0) * 2 -1, fx
         return (fx > 0) * 2 -1
         pass
 
@@ -266,27 +266,5 @@ if __name__ == "__main__":
     result = svc.predict(test_x)
     print( sum(result.reshape([-1]) == test_y.reshape([-1]))/test_y.shape[0] )
 
-if __name__ == "__main":
-    C = 1
-    svm = SVM(kernel='rbf',C=C)
-    train_x = numpy.array([
-        [-1.0, 1.0],
-        [1, -1],
-        [-4, -0.5],
-        [-2, 4],
-        [2, -3],
-        [3.5, 0.5]
-    ])
-    train_y = numpy.array([
-        [1.0],
-        [-1],
-        [1],
-        [1],
-        [-1],
-        [-1]
-    ])
-    svm = SVM(C=1)
-    svm.fit(train_x, train_y)
-    result = svm.predict(train_x)
 
 
