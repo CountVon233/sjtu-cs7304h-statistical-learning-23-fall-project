@@ -1,3 +1,5 @@
+# Support Vector Machine Classifier
+
 from typing import Tuple
 import numpy
 from numpy.core.numeric import identity
@@ -5,8 +7,11 @@ from sklearn.svm import SVC
 import random
 from matplotlib import pyplot as plt
 
+# SVM main class
 class SVM():
+    # A selector to search a pair of dual variables to optimize
     class selector:
+        # initial. 
         def __init__(self, num_sample, C) -> None:
             self.scan = 'all'
             self.num_sample = num_sample
@@ -15,6 +20,9 @@ class SVM():
             numpy.random.shuffle(self.idx)
             self.now_ptr = 0
             self.epsilon = 0.0001
+        # Choose a pair of dual variables to optimize.
+        # choose alpha_i as the first found one who violates the KKT condition
+        # then find a random alpha_j 
         def choose(self, a, lab, fx):
             ptr_from = self.now_ptr
             hit = 0
@@ -38,6 +46,9 @@ class SVM():
                 if hit >=2:
                     return None
         
+        # judgment whether alpha_i violate the KKT condition.
+        # in odd scan, search all the vector
+        # in even scan, only search non-bound vector
         def if_violate(self, a_i, lab_i, fx_i):
             if a_i > 0 and a_i < self.C and abs(lab_i * fx_i - 1) >= self.epsilon:
                 return True
@@ -46,7 +57,7 @@ class SVM():
             if self.scan=='all' and a_i == self.C and lab_i * fx_i > 1:
                 return True
             return False
-
+    # initial
     def __init__(self, kernel = 'linear',C = 1, gamma = 1) -> None:
         self.vec = None
         self.lab = None
@@ -59,6 +70,7 @@ class SVM():
         self.kernel = kernel
         self.gamma = gamma
         self.sel = None
+    # train the model
     def fit(self, feature, label, max_iter = 40000):
         self.vec = feature
         self.lab = label.reshape((-1,1))
@@ -68,6 +80,7 @@ class SVM():
         self.SMO(max_iter=max_iter)
         self.simplify()
         return (self.fx > 0) * 2 -1
+    # calculate the kernel function matrix
     def getKM(self, feature = None):
         # linear kernel
         if self.kernel == 'linear':
@@ -93,6 +106,7 @@ class SVM():
                 km = numpy.linalg.norm(km,axis=2)**2
                 km = numpy.exp(-self.gamma * km)
                 return km
+    # simplify the model, only keep the support vectors in memory
     def simplify(self):
         idx = numpy.array(range(self.a.shape[0])).reshape((-1,1))
         idx  = idx[self.a!=0]
@@ -102,6 +116,7 @@ class SVM():
         self.a = self.a[idx]
         self.getKM()
         pass
+    # SMO iteration
     def SMO(self, max_iter):
         self.fx = numpy.dot(self.KM , self.lab * self.a) + self.b
         for stp in range(max_iter):
@@ -112,6 +127,7 @@ class SVM():
                 self.step(ij[0],ij[1])
             else:
                 break
+    # SMO optimization step
     def step(self,i:int,j:int):
         E_i = self.fx[i] - self.lab[i]
         E_j = self.fx[j] - self.lab[j]
@@ -148,7 +164,7 @@ class SVM():
 
         self.fx = numpy.dot(self.KM , self.lab * self.a) + self.b
         pass
-        
+    # predict
     def predict(self, feature, value = False):
         ker = self.getKM(feature=feature)
         fx = numpy.dot(ker.T, self.lab * self.a) + self.b
@@ -158,7 +174,7 @@ class SVM():
         pass
 
 
-
+# test the classifier on a simple dataset
 if __name__ == "__main__":
 
     C = 1
