@@ -7,7 +7,7 @@ class solver:
         self.w = np.ones([out_class, in_feature])
         self.b = np.zeros([out_class, 1])
         self.lr = 0.1
-        self.gamma = 0.97
+        self.gamma = 1
     
     def train(self, train_data, train_label, epoch):
         for iter in range(0, epoch):
@@ -20,12 +20,12 @@ class solver:
                 out = self.w@x + self.b
                 p = np.exp(out)/( np.sum( np.exp(out), axis=0).reshape([1,-1]) )
                 log_likelyhood += np.log(p[y])
-                _w += ( - p + np.eye(self.out_class)[y].T)@x.T
-                _b += - p + np.eye(self.out_class)[y].T
+                _w += ( - p + np.eye(self.out_class)[y.reshape(-1)].T)@x.T
+                _b += - p + np.eye(self.out_class)[y.reshape(-1)].T
             self.w += self.lr * _w
             self.b += self.lr * _b
             self.lr *= self.gamma 
-            print(log_likelyhood)
+            print("log_likelyhood in iter {i} is {log}".format(i = iter, log = log_likelyhood))
     
     def test(self, test_data):
         result = []
@@ -33,6 +33,6 @@ class solver:
             x = test_data[i:i+1,:].T
             out = self.w@x + self.b
             p = np.exp(out)/( np.sum( np.exp(out), axis=0).reshape([1,-1]) )
-            result.append(np.argmax(p, axis = 1))
+            result.append(np.argmax(p, axis = 0))
         return np.concatenate(result, axis = 0).reshape([-1,1])
 

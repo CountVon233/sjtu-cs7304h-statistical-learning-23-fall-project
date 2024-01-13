@@ -29,10 +29,6 @@ class SVM():
                     numpy.random.shuffle(self.idx)
                 if self.if_violate(a[self.idx[self.now_ptr]], lab[self.idx[self.now_ptr]], fx[self.idx[self.now_ptr]]):
                     i = self.idx[self.now_ptr]
-                    # E = fx - lab
-                    # E_lr = numpy.abs(E-E[i])
-                    # j = numpy.argpartition(E_lr[:,0],-5)[-5:]
-                    # j = random.choice(j)
                     j = random.randint(0,self.num_sample-1)
                     while j == i:
                         j = random.randint(0,self.num_sample-1)
@@ -63,7 +59,7 @@ class SVM():
         self.kernel = kernel
         self.gamma = gamma
         self.sel = None
-    def fit(self, feature, label, max_iter = 10000):
+    def fit(self, feature, label, max_iter = 40000):
         self.vec = feature
         self.lab = label.reshape((-1,1))
         self.getKM()
@@ -108,19 +104,14 @@ class SVM():
         pass
     def SMO(self, max_iter):
         self.fx = numpy.dot(self.KM , self.lab * self.a) + self.b
-        # self.fx = (self.fx > 0)*2 - 1
         for stp in range(max_iter):
-            # if stp < 10 * self.lab.shape[0]:
-            #     ij = self.choice(stp=stp % self.lab.shape[0])
-            # else:
-            #     ij = self.choice()
+            if stp % 1000 == 999 :
+                print("current iteration is {i}".format(i=stp))
             ij = self.sel.choose(self.a, self.lab, self.fx)
             if ij is not None:
                 self.step(ij[0],ij[1])
             else:
                 break
-            # if stp % 1000 == 0:
-                # print("iter = %d"%stp)
     def step(self,i:int,j:int):
         E_i = self.fx[i] - self.lab[i]
         E_j = self.fx[j] - self.lab[j]
@@ -152,74 +143,12 @@ class SVM():
             self.b = b_j
         else:
             self.b = b_i/2 + b_j/2
-        # self.b = b_i/2 + b_j/2
         self.a[i] = a_i
         self.a[j] = a_j
 
         self.fx = numpy.dot(self.KM , self.lab * self.a) + self.b
-        # self.fx = (self.fx > 0)*2 - 1
         pass
-    def choice(self,stp = None) -> Tuple[int,int]:
-        if stp is not None:
-            i = stp
-            E = self.fx - self.lab
-            E_lr = numpy.abs(E-E[i])
-            # j = numpy.argmax(E_lr)
-            j = random.randint(0,self.lab.shape[0]-1)
-            while j == i:
-                j = random.randint(0,self.lab.shape[0]-1)
-
-            return (i,j)
         
-        idx = numpy.array(list(range(self.lab.shape[0]))).reshape((-1,1))
-        numpy.random.shuffle(idx)
-        for i in idx:
-            if self.a[i] > 0 and self.a[i] < self.C and abs(self.lab[i] * self.fx[i] - 1) >= self.epsilon:
-                break
-            elif self.a[i] == 0 and self.lab[i] * self.fx[i] < 1:
-                break
-            elif self.a[i] == self.C and self.lab[i] * self.fx[i] > 1:
-                break
-        E = self.fx - self.lab
-        E_lr = numpy.abs(E-E[i])
-        j = numpy.argpartition(E_lr[:,0],-5)[-5:]
-        j = random.choice(j)
-        return (i, j)
-
-        idx_p = (self.a > 0) * 1
-        idx_c = (self.a == self.C) * 1
-        idx_s = idx_c + idx_p
-        found_i = False
-        idx = numpy.array(list(range(self.lab.shape[0]))).reshape((-1,1))
-        support_vec = idx[idx_s == 1]
-        c_vec = idx[idx_s == 2]
-        zero_vec = idx[idx_s == 0]
-        numpy.random.shuffle(support_vec)
-        if len(support_vec) > 0:
-            for i in support_vec:
-                if abs(self.lab[i] * self.fx[i] - 1) >= self.epsilon:
-                    found_i = True
-                    break
-        if len(c_vec) > 0 and found_i == False :
-            for i in c_vec:
-                if self.lab[i] * self.fx[i] > 1:
-                    found_i = True
-                    break
-        if len(zero_vec) > 0 and found_i == False:
-            for i in zero_vec:
-                if self.lab[i] * self.fx[i] < 1:
-                    found_i = True
-                    break
-        # found_i = True
-        # i = random.randint(0,221)
-        if found_i == True:
-            E = self.fx - self.lab
-            E_lr = numpy.abs(E-E[i])
-            j = numpy.argpartition(E_lr[:,0],-5)[-5:]
-            j = random.choice(j)
-            # j = numpy.argmax(E_lr)
-            return (i,j)
-        return None
     def predict(self, feature, value = False):
         ker = self.getKM(feature=feature)
         fx = numpy.dot(ker.T, self.lab * self.a) + self.b

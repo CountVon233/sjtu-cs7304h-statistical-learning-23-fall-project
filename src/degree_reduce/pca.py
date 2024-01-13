@@ -21,7 +21,6 @@ class PCA:
         assert data.shape[1] >= trunc_degree
         data = data[:,norm(data, axis=0).nonzero()[0]]
         data = data - numpy.mean(data, axis=0)
-        # data = data / numpy.std(data, axis=0)
         ut, st, vt = svds(data, trunc_degree)
 
         self.feature_degree = data.shape[1]

@@ -39,7 +39,7 @@ class network:
             losses = []
             for i in range(0, train_data.shape[0], mini_batch):
                 x_1 = train_data[i:min(i+mini_batch, train_data.shape[0]),:].T
-                y_1 = train_label[i:i+mini_batch,:].T
+                y_1 = train_label[i:i+mini_batch].T
                 x_2 = self.w_hidden@x_1 + self.b_hidden
                 x_3 = np.exp(x_2)/(1 + np.exp(x_2))
                 x_4 = (self.w_out@x_3 + self.b_out)
@@ -76,13 +76,13 @@ class network:
             acc = 0
             for i in range(0, test_data.shape[0], mini_batch):
                 x_1 = test_data[i:min(i+mini_batch, test_data.shape[0]),:].T
-                y_1 = test_label[i:i+mini_batch,:].T
+                y_1 = test_label[i:i+mini_batch].T
                 x_2 = self.w_hidden@x_1 + self.b_hidden
                 x_3 = np.exp(x_2)/(1 + np.exp(x_2))
                 x_4 = (self.w_out@x_3 + self.b_out)
                 x_5 = np.exp(x_4)/( np.sum( np.exp(x_4), axis=0).reshape([1,-1]) )
-                x_5 = (x_5 == np.max(x_5, axis=1)) 
-                acc += mini_batch - np.sum(np.absolute(x_5 - y_1)) / 2
+                x_5 = np.argmax(x_5, axis=0)
+                acc += np.sum(y_1 == x_5)
             
             self.lr *= self.gama
             print('loss = %f,\tacc = %f, \tlr = %f'%(sum(losses)/train_data.shape[0], acc/test_data.shape[0], self.lr))

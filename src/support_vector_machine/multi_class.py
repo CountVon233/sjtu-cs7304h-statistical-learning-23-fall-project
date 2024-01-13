@@ -1,6 +1,7 @@
 import numpy
 
-from svmcopy import SVM
+from support_vector_machine.svmcopy import SVM
+# from svmcopy import SVM
 
 class MultiSVM():
     def __init__(self, kernel, C) -> None:
@@ -12,6 +13,7 @@ class MultiSVM():
     def fit(self, feature, label):
         self.num_class = int(numpy.max(label)) + 1
         for class_i in range(self.num_class):
+            print("start training {i}th model ".format(i = class_i))
             self.classifier_list.append(SVM(self.kernel, C=self.C))
             train_y = (label == class_i)*2.0 - 1
             self.classifier_list[class_i].fit(feature, train_y)
@@ -25,7 +27,7 @@ class MultiSVM():
         return am
     
 if __name__ == "__main__":
-    sample = 5
+    sample = 1000
     center = numpy.array([[10, 10], [10, -10], [-10, 10], [-10, -10]])
     data = numpy.random.randn(sample*4, 2)
     label = numpy.zeros([sample*4,1],)
