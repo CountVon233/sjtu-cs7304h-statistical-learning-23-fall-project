@@ -19,7 +19,6 @@ class PCA:
     #   trunc_degree: desire output feature degree
     def train_and_proj(self, data:sparse.csr_matrix, trunc_degree):
         assert data.shape[1] >= trunc_degree
-        data = data[:,norm(data, axis=0).nonzero()[0]]
         data = data - numpy.mean(data, axis=0)
         ut, st, vt = svds(data, trunc_degree)
 
@@ -31,4 +30,4 @@ class PCA:
 
 
     def project(self, data):
-        return data @ self.projectMatrix
+        return data @ self.projectMatrix.T
